@@ -1,0 +1,36 @@
+# Xcode
+.DS_Store
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+
+# Swift Packages
+*.swiftpm
+.build/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Firebase
+GoogleService-Info.plist
+
+# Logs
+*.log
+
+# Derived Data
+DerivedData/
+
+# Temporary files
+*.swp
+*.swo
+*~
