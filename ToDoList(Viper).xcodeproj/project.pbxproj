@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		233730972D439920001B5E78 /* TaskCoreDataEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233730962D439920001B5E78 /* TaskCoreDataEntity+CoreDataProperties.swift */; };
-		233730982D439920001B5E78 /* TaskCoreDataEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 233730952D439920001B5E78 /* TaskCoreDataEntity+CoreDataClass.swift */; };
+		23A10D212E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23A10D202E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataProperties.swift */; };
+		23A10D222E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23A10D1F2E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataClass.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,11 +29,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		233730952D439920001B5E78 /* TaskCoreDataEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskCoreDataEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
-		233730962D439920001B5E78 /* TaskCoreDataEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskCoreDataEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		23516A6F2D42550400720654 /* ToDoList(Viper).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ToDoList(Viper).app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		23516A882D42550600720654 /* ToDoList(Viper)Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ToDoList(Viper)Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		23516A922D42550600720654 /* ToDoList(Viper)UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ToDoList(Viper)UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		23A10D1F2E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskCoreDataEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
+		23A10D202E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskCoreDataEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -95,8 +95,8 @@
 		23516A662D42550400720654 = {
 			isa = PBXGroup;
 			children = (
-				233730952D439920001B5E78 /* TaskCoreDataEntity+CoreDataClass.swift */,
-				233730962D439920001B5E78 /* TaskCoreDataEntity+CoreDataProperties.swift */,
+				23A10D1F2E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataClass.swift */,
+				23A10D202E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataProperties.swift */,
 				23516A712D42550400720654 /* ToDoList(Viper) */,
 				23516A8B2D42550600720654 /* ToDoList(Viper)Tests */,
 				23516A952D42550600720654 /* ToDoList(Viper)UITests */,
@@ -258,8 +258,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				233730972D439920001B5E78 /* TaskCoreDataEntity+CoreDataProperties.swift in Sources */,
-				233730982D439920001B5E78 /* TaskCoreDataEntity+CoreDataClass.swift in Sources */,
+				23A10D212E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataProperties.swift in Sources */,
+				23A10D222E37A2DC00131F4F /* TaskCoreDataEntity+CoreDataClass.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

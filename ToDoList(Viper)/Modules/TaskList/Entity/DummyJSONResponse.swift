@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct DummyJSONResponse: Codable {
+struct DummyJSONResponse: Decodable {
     let todos: [ToDoItem]
     let total: Int
     let skip: Int
     let limit: Int
 }
 
-struct ToDoItem: Codable {
+struct ToDoItem: Decodable {
     let id: Int
     let todo: String
     let completed: Bool

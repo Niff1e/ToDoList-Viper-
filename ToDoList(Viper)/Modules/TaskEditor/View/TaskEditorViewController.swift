@@ -7,7 +7,7 @@
 
 import UIKit
 
-class TaskEditorViewController: UIViewController, TaskEditorViewProtocol {
+final class TaskEditorViewController: UIViewController, TaskEditorViewProtocol {
 
     // MARK: - UIComponents
 
@@ -43,8 +43,6 @@ class TaskEditorViewController: UIViewController, TaskEditorViewProtocol {
     var presenter: TaskEditorPresenterProtocol?
     private var task: TaskEntity?
 
-    var onTaskListUpdate: ((Result<Void, Error>) -> Void)?
-
     // MARK: - Init
 
     init(task: TaskEntity? = nil) {
@@ -62,15 +60,16 @@ class TaskEditorViewController: UIViewController, TaskEditorViewProtocol {
         super.viewDidLoad()
         setupPositionOfSubviews()
         updateUI(with: task)
+
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Готово", style: .done, target: self, action: #selector(doneButtonTapped))
     }
 
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
+    // MARK: - Tap Handlers
+
+    @objc private func doneButtonTapped() {
         guard let title = titleTextField.text, let description = descriptionTextField.text else { return }
         if let task = task {
-            if task.title != titleTextField.text || task.description != descriptionTextField.text {
-                presenter?.update(task: task, withTitle: title, description: description)
-            }
+            presenter?.updateTask(withId: task.id, newTitle: title, newDescription: description)
         } else {
             presenter?.saveTask(title: title, description: description)
         }
@@ -107,6 +106,14 @@ class TaskEditorViewController: UIViewController, TaskEditorViewProtocol {
             dateLabel.text = DateFormatter.localizedString(from: task.dueDate, dateStyle: .short, timeStyle: .none)
         } else {
             dateLabel.text = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .none)
+        }
+    }
+
+    func showError(title: String, message: String) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
         }
     }
 }

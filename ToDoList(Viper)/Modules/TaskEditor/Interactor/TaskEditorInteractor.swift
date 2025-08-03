@@ -7,19 +7,30 @@
 
 import Foundation
 
-class TaskEditorInteractor: TaskEditorInteractorProtocol {
+final class TaskEditorInteractor: TaskEditorInteractorProtocol {
     
     weak var presenter: TaskEditorPresenterProtocol?
+    private let coreDataManager: CoreDataManager
 
-    func saveTaskInCoreData(title: String, description: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        let task = TaskEntity(title: title, description: description, dueDate: Date(), isCompleted: false)
-        CoreDataManager.shared.saveTaskToCoreData(task) { result in
-            completion(result)
+    init(coreDataManager: CoreDataManager) {
+        self.coreDataManager = coreDataManager
+    }
+
+    func saveTaskInCoreData(title: String, description: String, completion: @escaping (Result<TaskEntity, Error>) -> Void) {
+        let newId = Int(Date().timeIntervalSince1970)
+        let task = TaskEntity(id: newId, title: title, description: description, dueDate: Date(), isCompleted: false)
+        coreDataManager.saveTaskToCoreData(task) { result in
+            switch result {
+            case .success:
+                // В случае успеха, возвращаем созданную задачу!
+                completion(.success(task))
+            case .failure(let error):
+                completion(.failure(error))
+            }
         }
     }
 
-    func updateTaskInCoreData(task: TaskEntity, withTitle title: String, description: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        CoreDataManager.shared.update(task: task, withTitle: title, description: description) { result in completion(result)
-        }
+    func updateTask(withId id: Int, newTitle: String, newDescription: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        coreDataManager.updateTask(withId: id, withTitle: newTitle, description: newDescription, completion: completion)
     }
 }

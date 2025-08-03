@@ -9,39 +9,39 @@ import Foundation
 import UIKit
 import CoreData
 
-class TaskListRouter: TaskListRouterProtocol {
+final class TaskListRouter: TaskListRouterProtocol {
 
     weak var viewController: TaskListViewController?
+    private let coreDataContainer: NSPersistentContainer
 
-    static func createModule() -> TaskListViewController {
-        let viewController = TaskListViewController()
-        let presenter: TaskListPresenterProtocol = TaskListPresenter()
-        let interactor: TaskListInteractorProtocol = TaskListInteractor()
-        let router: TaskListRouterProtocol = TaskListRouter()
-
-        viewController.presenter = presenter
-        presenter.view = viewController
-        presenter.interactor = interactor
-        presenter.router = router
-        interactor.presenter = presenter
-        router.viewController = viewController
-
-        return viewController
+    init(coreDataContainer: NSPersistentContainer) {
+        self.coreDataContainer = coreDataContainer
     }
 
-    func navigateToAddTask(completion: @escaping (Result<Void, Error>) -> Void) {
-        let taskEditorVC = TaskEditorRouter.createModule()
-        taskEditorVC.onTaskListUpdate = { result in
-            completion(result)
-        }
-        viewController?.navigationController?.pushViewController(taskEditorVC, animated: true)
+    func navigateToAddTask(completion: @escaping (TaskEntity) -> Void) {
+        guard let view = viewController else { return }
+
+        let taskEditorVC = TaskEditorBuilder.build(
+            coreDataContainer: self.coreDataContainer,
+            onSave: { savedTask in
+                completion(savedTask)
+            }
+        )
+
+        view.navigationController?.pushViewController(taskEditorVC, animated: true)
     }
 
-    func navigateToTaskDetails(with task: TaskEntity, completion: @escaping (Result<Void, Error>) -> Void) {
-        let taskEditorVC = TaskEditorRouter.createModule(with: task)
-        taskEditorVC.onTaskListUpdate = { result in
-            completion(result)
-        }
-        viewController?.navigationController?.pushViewController(taskEditorVC, animated: true)
+    func navigateToTaskDetails(with task: TaskEntity, completion: @escaping (TaskEntity) -> Void) {
+        guard let view = viewController else { return }
+
+        let taskEditorVC = TaskEditorBuilder.build(
+            coreDataContainer: self.coreDataContainer,
+            task: task,
+            onSave: { updatedTask in
+                completion(updatedTask)
+            }
+        )
+
+        view.navigationController?.pushViewController(taskEditorVC, animated: true)
     }
 }

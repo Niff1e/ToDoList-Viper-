@@ -7,28 +7,37 @@
 
 import Foundation
 
-class TaskListInteractor: TaskListInteractorProtocol {
+final class TaskListInteractor: TaskListInteractorProtocol {
     weak var presenter: TaskListPresenterProtocol?
+    private let networkService: NetworkServiceProtocol
+    private let coreDataManager: CoreDataManager
+
+    init(presenter: TaskListPresenterProtocol? = nil, networkService: NetworkServiceProtocol, coreDataManager: CoreDataManager) {
+        self.networkService = networkService
+        self.coreDataManager = coreDataManager
+    }
 
     // MARK: - Fetching data from CoreData
 
     func fetchTasks() {
-        let localTasks = CoreDataManager.shared.fetchTasksFromCoreData()
+        let localTasks = coreDataManager.fetchTasksFromCoreData()
         if !localTasks.isEmpty {
-            let tasks = localTasks.map { TaskEntity(title: $0.name ?? "", description: $0.descriptions ?? "", dueDate: $0.date ?? Date(), isCompleted: $0.completed) }
+            let tasks = localTasks.map { TaskEntity(id: Int($0.id), title: $0.name ?? "", description: $0.descriptions ?? "", dueDate: $0.date ?? Date(), isCompleted: $0.completed) }
             presenter?.didFetchTasks(tasks)
         } else {
-            JSONManager.shared.fetchTasks { [weak self] result in
+            networkService.fetchTasks { [weak self] result in
                 DispatchQueue.main.async {
                     switch result {
                     case .success(let tasks):
                         let taskForCoreData = tasks.todos.map {
-                            TaskEntity(title: $0.todo, description: $0.todo, dueDate: Date(), isCompleted: $0.completed)
+                            TaskEntity(id: $0.id, title: $0.todo, description: $0.todo, dueDate: Date(), isCompleted: $0.completed)
                         }
-                        CoreDataManager.shared.saveTasksToCoreData(taskForCoreData)
+                        self?.coreDataManager.saveTasksToCoreData(taskForCoreData)
                         self?.presenter?.didFetchTasks(taskForCoreData)
                     case .failure(let error):
-                        self?.presenter?.didFailToFetchTasks(error: error)
+                        DispatchQueue.main.async {
+                            self?.presenter?.didFail(with: error)
+                        }
                     }
                 }
             }
@@ -37,29 +46,28 @@ class TaskListInteractor: TaskListInteractorProtocol {
 
     // MARK: - Interaction with Tasks in CoreData
 
-    func updateTaskStatus(task: TaskEntity) {
-        CoreDataManager.shared.markTaskAsCompleted(task: task) { [weak self] result in
-            switch result {
-            case .success():
-                break
-            case .failure(let error):
-                self?.presenter?.didFailToUpdateTask(error: error)
+    func updateTaskStatus(forId id: Int) {
+        coreDataManager.toggleTaskStatus(withId: id) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self?.presenter?.didSucceedToUpdateStatus(forId: id)
+                case .failure(let error):
+                    self?.presenter?.didFail(with: error)
+                }
             }
         }
     }
 
-    func addTask(_ task: TaskEntity) {
-        CoreDataManager.shared.saveTasksToCoreData([task])
-        fetchTasks()
-    }
-
-    func deleteTask(_ task: TaskEntity) {
-        CoreDataManager.shared.deleteTask(task: task) { [weak self] result in
-            switch result {
-            case .success:
-                self?.fetchTasks() // Перезагружаем данные после удаления
-            case .failure(let error):
-                self?.presenter?.didFailToDeleteTask(error: error)
+    func deleteTask(withId id: Int) {
+        coreDataManager.deleteTask(withId: id) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self?.presenter?.didSucceedToDelete(withId: id)
+                case .failure(let error):
+                    self?.presenter?.didFail(with: error)
+                }
             }
         }
     }

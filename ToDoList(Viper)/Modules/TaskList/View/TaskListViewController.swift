@@ -7,7 +7,7 @@
 
 import UIKit
 
-class TaskListViewController: UIViewController, TaskListViewProtocol {
+final class TaskListViewController: UIViewController, TaskListViewProtocol {
 
     // MARK: - UI Components
 
@@ -69,7 +69,6 @@ class TaskListViewController: UIViewController, TaskListViewProtocol {
     var presenter: TaskListPresenterProtocol?
 
     private var tasks: [TaskEntity] = []
-    private var savedTasks: [TaskEntity] = []
 
     // MARK: - VC Lifecycle
 
@@ -264,7 +263,7 @@ class TaskListViewController: UIViewController, TaskListViewProtocol {
             print("Shared")
         case 2:
             let task = tasks[selectedIndex]
-            presenter?.deleteTask(task)
+            presenter?.deleteTask(withId: task.id)
         default:
             break
         }
@@ -280,7 +279,7 @@ class TaskListViewController: UIViewController, TaskListViewProtocol {
         // Конверсия координат выбранной ячейки в координатную систему view
         let cellFrame = tableView.convert(cell.frame, to: view)
 
-        // Соаздние маски для blurView
+        // Создание маски для blurView
         let path = UIBezierPath(rect: view.bounds)
         let cellPath = UIBezierPath(roundedRect: cellFrame, cornerRadius: 8)
         path.append(cellPath)
@@ -329,22 +328,6 @@ class TaskListViewController: UIViewController, TaskListViewProtocol {
         }
     }
 
-
-    // MARK: - Search Function
-
-    private func performSearch(with query: String) {
-        savedTasks = tasks
-        tasks = []
-
-        for task in self.savedTasks {
-            let name = task.title
-            if name.range(of: query, options: .caseInsensitive) != nil {
-                tasks.append(task)
-            }
-        }
-        updateTaskList(tasks)
-    }
-
     // MARK: - UI-Updating Functions
 
     func updateTaskList(_ tasks: [TaskEntity]) {
@@ -355,9 +338,9 @@ class TaskListViewController: UIViewController, TaskListViewProtocol {
         }
     }
 
-    func showError(_ message: String) {
+    func showError(title: String, message: String) {
         DispatchQueue.main.async {
-            let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default))
             self.present(alert, animated: true)
         }
@@ -387,13 +370,12 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let markAsCompletedAction = UIContextualAction(style: .normal, title: "Выполнить") { [weak self] _, _, completion in
-            guard let self = self else { return }
-
-            let task = self.tasks[indexPath.row]
-            self.tasks[indexPath.row].isCompleted.toggle()
-            self.presenter?.toggleTaskCompletion(task: task)
-            updateTaskList(tasks)
-
+            guard let self = self else {
+                completion(false)
+                return
+            }
+            let taskId = self.tasks[indexPath.row].id
+            self.presenter?.toggleTaskCompletion(forId: taskId)
             completion(true)
         }
         markAsCompletedAction.backgroundColor = .systemYellow
@@ -406,18 +388,12 @@ extension TaskListViewController: UITableViewDataSource, UITableViewDelegate {
 
 extension TaskListViewController: UISearchBarDelegate, UISearchResultsUpdating {
 
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        guard let searchText = searchBar.text, let query = searchBar.text, !query.trimmingCharacters(in: .whitespaces).isEmpty else {
-            return
-        }
-        performSearch(with: searchText)
-    }
-
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        presenter?.viewDidLoad()
+        presenter?.cancelSearch()
     }
 
     func updateSearchResults(for searchController: UISearchController) {
+        presenter?.searchTasks(with: searchController.searchBar.text ?? "")
     }
 }
 

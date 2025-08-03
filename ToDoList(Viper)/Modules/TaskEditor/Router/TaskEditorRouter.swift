@@ -8,20 +8,11 @@
 import Foundation
 import UIKit
 
-class TaskEditorRouter: TaskEditorRouterProtocol {
+final class TaskEditorRouter: TaskEditorRouterProtocol {
 
-    static func createModule(with task: TaskEntity? = nil) -> TaskEditorViewController {
-        let view = TaskEditorViewController(task: task)
-        let presenter: TaskEditorPresenterProtocol = TaskEditorPresenter()
-        let interactor: TaskEditorInteractorProtocol = TaskEditorInteractor()
-        let router: TaskEditorRouterProtocol = TaskEditorRouter()
+    weak var viewController: UIViewController?
 
-        view.presenter = presenter
-        presenter.view = view
-        presenter.interactor = interactor
-        presenter.router = router
-        interactor.presenter = presenter
-
-        return view
+    func dismiss() {
+        viewController?.navigationController?.popViewController(animated: true)
     }
 }

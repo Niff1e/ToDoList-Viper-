@@ -2,7 +2,7 @@
 //  TaskCoreDataEntity+CoreDataClass.swift
 //  ToDoList(Viper)
 //
-//  Created by Pavel Maal on 24.01.25.
+//  Created by Pavel Maal on 28.07.25.
 //
 //
 

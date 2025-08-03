@@ -2,7 +2,7 @@
 //  TaskCoreDataEntity+CoreDataProperties.swift
 //  ToDoList(Viper)
 //
-//  Created by Pavel Maal on 24.01.25.
+//  Created by Pavel Maal on 28.07.25.
 //
 //
 
@@ -16,10 +16,11 @@ extension TaskCoreDataEntity {
         return NSFetchRequest<TaskCoreDataEntity>(entityName: "TaskCoreDataEntity")
     }
 
-    @NSManaged public var name: String?
-    @NSManaged public var date: Date?
     @NSManaged public var completed: Bool
+    @NSManaged public var date: Date?
     @NSManaged public var descriptions: String?
+    @NSManaged public var name: String?
+    @NSManaged public var id: Int64
 
 }
 

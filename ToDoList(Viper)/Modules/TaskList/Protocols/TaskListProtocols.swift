@@ -11,7 +11,7 @@ import UIKit
 protocol TaskListViewProtocol: AnyObject {
     var presenter: TaskListPresenterProtocol? { get set }
     func updateTaskList(_ tasks: [TaskEntity])
-    func showError(_ message: String)
+    func showError(title: String, message: String)
 }
 
 protocol TaskListPresenterProtocol: AnyObject {
@@ -21,26 +21,26 @@ protocol TaskListPresenterProtocol: AnyObject {
 
     func viewDidLoad()
     func didFetchTasks(_ tasks: [TaskEntity])
-    func didFailToFetchTasks(error: Error)
+    func didFail(with error: Error)
     func addTask()
     func editTask(_ task: TaskEntity)
-    func deleteTask(_ task: TaskEntity)
-    func toggleTaskCompletion(task: TaskEntity)
-    func didFailToUpdateTask(error: Error)
-    func didFailToDeleteTask(error: Error)
+    func deleteTask(withId id: Int)
+    func didSucceedToDelete(withId id: Int)
+    func toggleTaskCompletion(forId id: Int)
+    func didSucceedToUpdateStatus(forId id: Int)
+    func searchTasks(with query: String)
+    func cancelSearch()
 }
 
 protocol TaskListInteractorProtocol: AnyObject {
     var presenter: TaskListPresenterProtocol? { get set }
     func fetchTasks()
-    func addTask(_ task: TaskEntity)
-    func deleteTask(_ task: TaskEntity)
-    func updateTaskStatus(task: TaskEntity)
+    func deleteTask(withId id: Int)
+    func updateTaskStatus(forId id: Int)
 }
 
 protocol TaskListRouterProtocol: AnyObject {
     var viewController: TaskListViewController? { get set }
-    static func createModule() -> TaskListViewController
-    func navigateToAddTask(completion: @escaping (Result<Void, Error>) -> Void)
-    func navigateToTaskDetails(with task: TaskEntity, completion: @escaping (Result<Void, Error>) -> Void)
+    func navigateToAddTask(completion: @escaping (TaskEntity) -> Void)
+    func navigateToTaskDetails(with task: TaskEntity, completion: @escaping (TaskEntity) -> Void)
 }

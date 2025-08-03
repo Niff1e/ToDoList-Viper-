@@ -7,64 +7,77 @@
 
 import Foundation
 import CoreData
-import UIKit
 
-class CoreDataManager {
+final class CoreDataManager {
 
-    static let shared = CoreDataManager()
-    private let persistentContainer: NSPersistentContainer = (UIApplication.shared.delegate as! AppDelegate).persistentContainer
+    private let persistentContainer: NSPersistentContainer
 
-    func saveTasksToCoreData(_ tasks: [TaskEntity]) {
-        let context = persistentContainer.viewContext
-        tasks.forEach { task in
-            let taskObject = TaskCoreDataEntity(context: context)
-            taskObject.name = task.title
-            taskObject.descriptions = task.description
-            taskObject.completed = task.isCompleted
-            taskObject.date = task.dueDate
-        }
+    init(persistentContainer: NSPersistentContainer) {
+        self.persistentContainer = persistentContainer
+    }
+
+    private func saveContext(on context: NSManagedObjectContext) throws {
+        guard context.hasChanges else { return }
         do {
             try context.save()
         } catch {
-            print("Failed to save tasks to CoreData: \(error)")
+            throw CoreDataError.saveFailed(error)
+        }
+    }
+
+    func saveTasksToCoreData(_ tasks: [TaskEntity]) {
+        persistentContainer.performBackgroundTask { context in
+            tasks.forEach { taskData in
+                let taskObject = TaskCoreDataEntity(context: context)
+                taskObject.id = Int64(taskData.id)
+                taskObject.name = taskData.title
+                taskObject.descriptions = taskData.description
+                taskObject.completed = taskData.isCompleted
+                taskObject.date = taskData.dueDate
+            }
+            do {
+                try self.saveContext(on: context)
+            } catch {
+                print(error.localizedDescription)
+            }
         }
     }
 
     func saveTaskToCoreData(_ task: TaskEntity, completion: @escaping (Result<Void, Error>) -> Void) {
-        let context = persistentContainer.viewContext
-        let taskObject = TaskCoreDataEntity(context: context)
-        taskObject.name = task.title
-        taskObject.descriptions = task.description
-        taskObject.completed = task.isCompleted
-        taskObject.date = task.dueDate
-        do {
-            try context.save()
-            completion(.success(()))
-        } catch {
-            print("Failed to save task to CoreData: \(error)")
-            completion(.failure(error))
+        persistentContainer.performBackgroundTask { context in
+            let taskObject = TaskCoreDataEntity(context: context)
+            taskObject.id = Int64(task.id)
+            taskObject.name = task.title
+            taskObject.descriptions = task.description
+            taskObject.completed = task.isCompleted
+            taskObject.date = task.dueDate
+
+            do {
+                try context.save()
+                DispatchQueue.main.async { completion(.success(())) }
+            } catch {
+                DispatchQueue.main.async { completion(.failure(CoreDataError.saveFailed(error))) }
+            }
         }
     }
 
-    func markTaskAsCompleted(task: TaskEntity, completion: @escaping (Result<Void, Error>) -> Void) {
-        let context = persistentContainer.viewContext  // Получаем контекст
-        let fetchRequest: NSFetchRequest<TaskCoreDataEntity> = TaskCoreDataEntity.fetchRequest()
+    func toggleTaskStatus(withId id: Int, completion: @escaping (Result<Void, Error>) -> Void) {
+        persistentContainer.performBackgroundTask { context in
+            let fetchRequest: NSFetchRequest<TaskCoreDataEntity> = TaskCoreDataEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id == %d", id)
 
-        fetchRequest.predicate = NSPredicate(format: "name == %@ AND date == %@", task.title, task.dueDate as CVarArg)
+            do {
+                if let taskToUpdate = try context.fetch(fetchRequest).first {
+                    taskToUpdate.completed.toggle()
 
-        do {
-            let tasks = try context.fetch(fetchRequest)
-            if let task = tasks.first {
-                task.completed.toggle()
-                try context.save()
-                completion(.success(()))
-            } else {
-                completion(.failure(NSError()))
-                print("Task not found with the given title and due date.")
+                    try context.save()
+                    DispatchQueue.main.async { completion(.success(())) }
+                } else {
+                    DispatchQueue.main.async { completion(.failure(CoreDataError.taskNotFound(id: id))) }
+                }
+            } catch {
+                DispatchQueue.main.async { completion(.failure(CoreDataError.saveFailed(error))) }
             }
-        } catch {
-            completion(.failure(error))
-            print("Error fetching or saving task: \(error)")
         }
     }
 
@@ -74,45 +87,59 @@ class CoreDataManager {
         do {
             return try context.fetch(fetchRequest)
         } catch {
-            print("Failed to fetch tasks from CoreData: \(error)")
+            print(CoreDataError.fetchFailed(error).localizedDescription)
             return []
         }
     }
 
-    func deleteTask(task: TaskEntity, completion: (Result<Void, Error>) -> Void) {
-        let context = persistentContainer.viewContext
-        let fetchRequest: NSFetchRequest<TaskCoreDataEntity> = TaskCoreDataEntity.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "name == %@ AND date == %@", task.title, task.dueDate as CVarArg)
+    func deleteTask(withId id: Int, completion: @escaping (Result<Void, Error>) -> Void) {
+        persistentContainer.performBackgroundTask { context in
+            let fetchRequest: NSFetchRequest<TaskCoreDataEntity> = TaskCoreDataEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id == %d", id)
 
-        do {
-            if let taskToDelete = try context.fetch(fetchRequest).first {
-                context.delete(taskToDelete)
-                try context.save()
-                completion(.success(()))
-            } else {
-                completion(.failure(NSError(domain: "Task not found", code: 404, userInfo: nil)))
+            do {
+                if let taskToDelete = try context.fetch(fetchRequest).first {
+                    context.delete(taskToDelete)
+                    try context.save()
+                    DispatchQueue.main.async {
+                        completion(.success(()))
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        completion(.failure(CoreDataError.taskNotFound(id: id)))
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    completion(.failure(CoreDataError.saveFailed(error)))
+                }
             }
-        } catch {
-            print("Failed to delete task: \(error.localizedDescription)")
-            completion(.failure(error))
         }
     }
 
-    func update(task: TaskEntity, withTitle title: String, description: String, completion: (Result<Void, Error>) -> Void) {
-        let context = persistentContainer.viewContext
-        let fetchRequest: NSFetchRequest<TaskCoreDataEntity> = TaskCoreDataEntity.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "name == %@ AND date == %@", task.title, task.dueDate as CVarArg)
+    func updateTask(withId id: Int, withTitle title: String, description: String, completion: @escaping (Result<Void, Error>) -> Void) {
+        persistentContainer.performBackgroundTask { context in
+            let fetchRequest: NSFetchRequest<TaskCoreDataEntity> = TaskCoreDataEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "id == %d", id)
 
-        do {
-            if let taskToUpdate = try context.fetch(fetchRequest).first {
-                taskToUpdate.name = title
-                taskToUpdate.descriptions = description
-                try context.save()
-                completion(.success(()))
+            do {
+                if let taskToUpdate = try context.fetch(fetchRequest).first {
+                    taskToUpdate.name = title
+                    taskToUpdate.descriptions = description
+                    try context.save()
+                    DispatchQueue.main.async {
+                        completion(.success(()))
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        completion(.failure(CoreDataError.taskNotFound(id: id)))
+                    }
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    completion(.failure(CoreDataError.saveFailed(error)))
+                }
             }
-        } catch {
-            completion(.failure(error))
-            print("Failed to update task: \(error.localizedDescription)")
         }
     }
 }

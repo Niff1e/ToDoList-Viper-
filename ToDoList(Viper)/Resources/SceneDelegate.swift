@@ -14,10 +14,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
 
-        guard let windowScene = (scene as? UIWindowScene) else { return }
+        guard let windowScene = (scene as? UIWindowScene),
+              let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            fatalError("Essential app components are missing.")
+        }
+
+        let coreDataContainer = appDelegate.persistentContainer
+        let rootController = TaskListBuilder.build(coreDataContainer: coreDataContainer)
+
         let window = UIWindow(windowScene: windowScene)
 
-        let rootController = TaskListRouter.createModule()
         let navigationVC = UINavigationController(rootViewController: rootController)
 
         navigationVC.navigationBar.prefersLargeTitles = true
