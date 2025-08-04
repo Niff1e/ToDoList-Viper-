@@ -24,15 +24,15 @@ final class TaskListViewController: UIViewController, TaskListViewProtocol {
     private let footerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor(cgColor: CGColor(red: 0.15, green: 0.15, blue: 0.16, alpha: 1))
+        view.backgroundColor = .footerView
         return view
     }()
 
     private let addButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(systemName: "square.and.pencil"), for: .normal)
-        button.imageView?.tintColor = .yellow
-        button.setTitleColor(.yellow, for: .normal)
+        button.imageView?.tintColor = .accent
+        button.setTitleColor(.accent, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -40,7 +40,8 @@ final class TaskListViewController: UIViewController, TaskListViewProtocol {
     private let taskCountLabel: UILabel = {
         let label = UILabel()
         label.text = "0 Задач"
-        label.textColor = .white
+        label.textColor = .mainWhite
+        label.font = .taskListTaskCount
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -56,7 +57,7 @@ final class TaskListViewController: UIViewController, TaskListViewProtocol {
     private var menuView: UIView = {
         let menuView = UIView()
         menuView.translatesAutoresizingMaskIntoConstraints = false
-        menuView.backgroundColor = .white
+        menuView.backgroundColor = .menuView
         menuView.layer.cornerRadius = 12
         menuView.alpha = 0
         return menuView
@@ -96,8 +97,8 @@ final class TaskListViewController: UIViewController, TaskListViewProtocol {
         setupFooterView()
         setupTableView()
         setupBlurView()
-        setupAddButton()
         setupTaskCountLabel()
+        setupAddButton()
         setupMenuView()
     }
 
@@ -146,8 +147,10 @@ final class TaskListViewController: UIViewController, TaskListViewProtocol {
         footerView.addSubview(addButton)
 
         NSLayoutConstraint.activate([
-            addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            addButton.centerYAnchor.constraint(equalTo: taskCountLabel.centerYAnchor),
+            addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20.0),
+            addButton.widthAnchor.constraint(equalToConstant: 28.0),
+            addButton.heightAnchor.constraint(equalToConstant: 28.0)
         ])
     }
 
@@ -156,7 +159,7 @@ final class TaskListViewController: UIViewController, TaskListViewProtocol {
         footerView.addSubview(taskCountLabel)
 
         NSLayoutConstraint.activate([
-            taskCountLabel.centerYAnchor.constraint(equalTo: addButton.centerYAnchor),
+            taskCountLabel.topAnchor.constraint(equalTo: footerView.topAnchor, constant: 20.0),
             taskCountLabel.centerXAnchor.constraint(equalTo: footerView.centerXAnchor)
         ])
     }
@@ -165,7 +168,7 @@ final class TaskListViewController: UIViewController, TaskListViewProtocol {
 
         let buttonTitles = ["Редактировать", "Поделиться", "Удалить"]
         let buttonIcons = ["square.and.pencil", "square.and.arrow.up", "trash"]
-        let buttonColors: [UIColor] = [.black, .black, .red]
+        let buttonColors: [UIColor] = [.mainBlack, .mainBlack, .mainRed]
 
         // Высота кнопки и сепаратора
         let buttonHeight: CGFloat = 50
@@ -176,7 +179,7 @@ final class TaskListViewController: UIViewController, TaskListViewProtocol {
             let button = UIButton(type: .system)
             button.setTitle(title, for: .normal)
             button.setTitleColor(buttonColors[index], for: .normal)
-            button.titleLabel?.font = UIFont.systemFont(ofSize: 16)
+            button.titleLabel?.font = .taskListMenuView
             button.contentHorizontalAlignment = .left
             button.tag = index
 

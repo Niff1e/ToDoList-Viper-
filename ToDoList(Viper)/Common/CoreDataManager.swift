@@ -8,7 +8,9 @@
 import Foundation
 import CoreData
 
-final class CoreDataManager {
+// Убрал модификатор 'final' для использования наследования в юнит-тестах
+
+class CoreDataManager {
 
     private let persistentContainer: NSPersistentContainer
 

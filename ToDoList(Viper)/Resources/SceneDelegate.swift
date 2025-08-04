@@ -23,6 +23,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let rootController = TaskListBuilder.build(coreDataContainer: coreDataContainer)
 
         let window = UIWindow(windowScene: windowScene)
+        
+        window.overrideUserInterfaceStyle = .dark
 
         let navigationVC = UINavigationController(rootViewController: rootController)
 

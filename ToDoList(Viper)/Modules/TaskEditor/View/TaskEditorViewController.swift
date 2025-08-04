@@ -11,30 +11,49 @@ final class TaskEditorViewController: UIViewController, TaskEditorViewProtocol {
 
     // MARK: - UIComponents
 
-    private let titleTextField: UITextField = {
-        let textField = UITextField()
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.placeholder = "Название задачи"
-        textField.font = UIFont.systemFont(ofSize: 45.0, weight: .medium)
-        textField.textColor = .label
-        return textField
+    private let titleTextView: UITextView = {
+        let textView = UITextView()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.font = .taskEditorTitle
+        textView.textColor = .mainWhite
+        textView.isScrollEnabled = false
+        textView.backgroundColor = .clear
+        return textView
     }()
 
-    private let descriptionTextField: UITextField = {
-        let textField = UITextField()
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.placeholder = "Описание задачи"
-        textField.font = UIFont.systemFont(ofSize: 22.0, weight: .bold)
-        textField.textColor = .label
-        return textField
+    private let titlePlaceholderLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Название задачи"
+        label.font = .taskEditorTitle
+        label.textColor = .mainWhite
+        return label
+    }()
+
+    private let descriptionTextView: UITextView = {
+        let textView = UITextView()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.font = .taskEditorDescription
+        textView.isScrollEnabled = false
+        textView.backgroundColor = .clear
+        textView.textColor = .mainWhite
+        return textView
+    }()
+
+    private let descriptionPlaceholderLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Описание задачи"
+        label.font = .taskEditorDescription
+        label.textColor = .mainWhite
+        return label
     }()
 
     private let dateLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .gray
-        label.font = UIFont.systemFont(ofSize: 18.0, weight: .medium)
-        label.textColor = .secondaryLabel
+        label.font = .taskEditorDate
+        label.textColor = .mainWhite05
         return label
     }()
 
@@ -62,12 +81,13 @@ final class TaskEditorViewController: UIViewController, TaskEditorViewProtocol {
         updateUI(with: task)
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Готово", style: .done, target: self, action: #selector(doneButtonTapped))
+        navigationItem.largeTitleDisplayMode = .never
     }
 
     // MARK: - Tap Handlers
 
     @objc private func doneButtonTapped() {
-        guard let title = titleTextField.text, let description = descriptionTextField.text else { return }
+        guard let title = titleTextView.text, let description = descriptionTextView.text else { return }
         if let task = task {
             presenter?.updateTask(withId: task.id, newTitle: title, newDescription: description)
         } else {
@@ -78,35 +98,47 @@ final class TaskEditorViewController: UIViewController, TaskEditorViewProtocol {
     // MARK: - Subviews
 
     private func setupPositionOfSubviews() {
-        view.addSubview(titleTextField)
-        view.addSubview(descriptionTextField)
+        view.addSubview(titleTextView)
+        view.addSubview(descriptionTextView)
         view.addSubview(dateLabel)
-        titleTextField.delegate = self
-        descriptionTextField.delegate = self
+        view.addSubview(titlePlaceholderLabel)
+        view.addSubview(descriptionPlaceholderLabel)
+        titleTextView.delegate = self
+        descriptionTextView.delegate = self
 
         NSLayoutConstraint.activate([
-            titleTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            titleTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20.0),
-            titleTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20.0),
+            titleTextView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            titleTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20.0),
+            titleTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20.0),
 
-            dateLabel.topAnchor.constraint(equalTo: titleTextField.bottomAnchor, constant: 20.0),
+            dateLabel.topAnchor.constraint(equalTo: titleTextView.bottomAnchor, constant: 20.0),
             dateLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20.0),
             dateLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20.0),
 
-            descriptionTextField.topAnchor.constraint(equalTo: dateLabel.bottomAnchor, constant: 20.0),
-            descriptionTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20.0),
-            descriptionTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20.0)
+            descriptionTextView.topAnchor.constraint(equalTo: dateLabel.bottomAnchor, constant: 20.0),
+            descriptionTextView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20.0),
+            descriptionTextView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20.0),
+
+            titlePlaceholderLabel.topAnchor.constraint(equalTo: titleTextView.topAnchor, constant: 8),
+            titlePlaceholderLabel.leadingAnchor.constraint(equalTo: titleTextView.leadingAnchor, constant: 5),
+            titlePlaceholderLabel.trailingAnchor.constraint(equalTo: titleTextView.trailingAnchor),
+
+            descriptionPlaceholderLabel.topAnchor.constraint(equalTo: descriptionTextView.topAnchor, constant: 8),
+            descriptionPlaceholderLabel.leadingAnchor.constraint(equalTo: descriptionTextView.leadingAnchor, constant: 5),
+            descriptionPlaceholderLabel.trailingAnchor.constraint(equalTo: descriptionTextView.trailingAnchor)
         ])
     }
 
     private func updateUI(with task: TaskEntity?) {
         if let task = task {
-            titleTextField.text = task.title
-            descriptionTextField.text = task.description
+            titleTextView.text = task.title
+            descriptionTextView.text = task.description
             dateLabel.text = DateFormatter.localizedString(from: task.dueDate, dateStyle: .short, timeStyle: .none)
         } else {
             dateLabel.text = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .none)
         }
+        titlePlaceholderLabel.isHidden = !titleTextView.text.isEmpty
+        descriptionPlaceholderLabel.isHidden = !descriptionTextView.text.isEmpty
     }
 
     func showError(title: String, message: String) {
@@ -118,15 +150,14 @@ final class TaskEditorViewController: UIViewController, TaskEditorViewProtocol {
     }
 }
 
-// MARK: - Text Field Delegate
+// MARK: - Text View Delegate
 
-extension TaskEditorViewController: UITextFieldDelegate {
-    func textFieldDidBeginEditing(_ textField: UITextField) {
-        textField.becomeFirstResponder()
-    }
-
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
+extension TaskEditorViewController: UITextViewDelegate {
+    func textViewDidChange(_ textView: UITextView) {
+        if textView == titleTextView {
+            titlePlaceholderLabel.isHidden = !textView.text.isEmpty
+        } else if textView == descriptionTextView {
+            descriptionPlaceholderLabel.isHidden = !textView.text.isEmpty
+        }
     }
 }
